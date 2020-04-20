@@ -15,8 +15,7 @@ public class ImplDAO implements DAO {
     @NotNull
     @Override
     public Iterator<Record> iterator(@NotNull final ByteBuffer from) throws IOException {
-        final Iterator<Record> iterator = map.tailMap(from).values().iterator();
-        return iterator;
+        return map.tailMap(from).values().iterator();
     }
 
     @Override
