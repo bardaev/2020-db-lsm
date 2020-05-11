@@ -54,7 +54,7 @@ public class LSMdao implements DAO {
         this.memoryTable = new MemoryTable();
         this.ssTableMap = new TreeMap<>();
 
-        try(Stream<Path> files = Files.list(storage.toPath())) {
+        try (Stream<Path> files = Files.list(storage.toPath())) {
             files
                     .filter(path -> path.toString().endsWith(SUFFIX))
                     .forEach(f -> {
