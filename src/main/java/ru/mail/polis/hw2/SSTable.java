@@ -57,6 +57,7 @@ public class SSTable implements Table {
 
     /**
      * serialize table to file
+     *
      * @param file - file
      * @param iterator - iterator
      */
@@ -65,35 +66,32 @@ public class SSTable implements Table {
         final List<Integer> offsets = new ArrayList<>();
         int offset = 0;
 
-        final FileChannel fileSerialize = new FileOutputStream(file).getChannel();
+        try(FileChannel fileSerialize = new FileOutputStream(file).getChannel();) {
+            while (iterator.hasNext()) {
+                final Cell cell = iterator.next();
+                final ByteBuffer k = cell.getKey();
+                offsets.add(offset);
+                offset = offset + k.remaining() + Long.BYTES + Integer.BYTES;
+                fileSerialize.write(ByteBuffer.allocate(Integer.BYTES).putInt(k.remaining()).rewind());
+                fileSerialize.write(k);
 
-        while (iterator.hasNext()) {
-            final Cell cell = iterator.next();
-            final ByteBuffer k = cell.getKey();
-            offsets.add(offset);
-            offset = offset + k.remaining() + Long.BYTES + Integer.BYTES;
-            fileSerialize.write(ByteBuffer.allocate(Integer.BYTES).putInt(k.remaining()).rewind());
-            fileSerialize.write(k);
-
-            if (cell.getValue().isTombstone()) {
-                fileSerialize.write(ByteBuffer.allocate(Long.BYTES).putLong(-cell.getValue().getTimestamp()).rewind());
-            } else {
-                fileSerialize.write(ByteBuffer.allocate(Long.BYTES).putLong(cell.getValue().getTimestamp()).rewind());
-                final ByteBuffer data = cell.getValue().getData();
-                offset += data.remaining();
-                fileSerialize.write(data);
+                if (cell.getValue().isTombstone()) {
+                    fileSerialize.write(ByteBuffer.allocate(Long.BYTES).putLong(-cell.getValue().getTimestamp()).rewind());
+                } else {
+                    fileSerialize.write(ByteBuffer.allocate(Long.BYTES).putLong(cell.getValue().getTimestamp()).rewind());
+                    final ByteBuffer data = cell.getValue().getData();
+                    offset += data.remaining();
+                    fileSerialize.write(data);
+                }
             }
+
+            final int count = offsets.size();
+            for (final Integer offs : offsets) {
+                fileSerialize.write(ByteBuffer.allocate(Integer.BYTES).putInt(offs).rewind());
+            }
+
+            fileSerialize.write(ByteBuffer.allocate(Integer.BYTES).putInt(count).rewind());
         }
-
-        final int count = offsets.size();
-        for (final Integer offs : offsets) {
-            fileSerialize.write(ByteBuffer.allocate(Integer.BYTES).putInt(offs).rewind());
-        }
-
-        fileSerialize.write(ByteBuffer.allocate(Integer.BYTES).putInt(count).rewind());
-
-        fileSerialize.close();
-
     }
 
     private int getPositionKey(final ByteBuffer key) {

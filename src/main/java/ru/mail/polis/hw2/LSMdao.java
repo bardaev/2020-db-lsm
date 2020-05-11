@@ -70,6 +70,7 @@ public class LSMdao implements DAO {
                         }
                     });
         }
+
         this.generation++;
     }
 
