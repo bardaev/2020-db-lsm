@@ -3,8 +3,11 @@ package ru.mail.polis.hw2;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
+import java.util.Comparator;
 
-public class Cell implements Comparable<Cell> {
+public class Cell {
+
+    static final Comparator<Cell> COMPARATOR = Comparator.comparing(Cell::getKey).thenComparing(Cell::getValue);
 
     private final ByteBuffer key;
     private final Value value;
@@ -26,8 +29,4 @@ public class Cell implements Comparable<Cell> {
         return value;
     }
 
-    @Override
-    public int compareTo(@NotNull Cell o) {
-        return 0;
-    }
 }

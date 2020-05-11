@@ -1,35 +1,46 @@
 package ru.mail.polis.hw2;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 
 public class Value implements Comparable<Value> {
 
-    private final ByteBuffer value;
-    private final long version;
-    private final boolean rip;
+    private final long timestamp;
 
-    Value(ByteBuffer value, boolean rip) {
-        this.value = value;
-        this.rip = rip;
-        this.version = System.currentTimeMillis();
+    @Nullable
+    private final Optional<ByteBuffer> value;
+
+    Value(final long timestamp, @Nullable final ByteBuffer value) {
+        assert timestamp > 0L;
+        this.timestamp = timestamp;
+        this.value = Optional.of(value);
     }
 
-    public ByteBuffer getValue() {
-        return value;
+    Value(final long timestamp) {
+        assert timestamp > 0L;
+        this.timestamp = timestamp;
+        this.value = Optional.empty();
     }
 
-    public long getVersion() {
-        return version;
+    boolean isTombstone() {
+        return value.isEmpty();
     }
 
-    public boolean isRip() {
-        return rip;
+    @NotNull
+    ByteBuffer getData() {
+        assert !isTombstone();
+        return value.orElseThrow().asReadOnlyBuffer();
+    }
+
+    public long getTimestamp() {
+        return timestamp;
     }
 
     @Override
     public int compareTo(@NotNull Value o) {
-        return Long.compare(o.getVersion(), this.getVersion());
+        return -Long.compare(timestamp, o.timestamp);
     }
 }

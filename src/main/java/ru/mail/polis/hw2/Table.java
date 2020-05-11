@@ -12,5 +12,5 @@ public interface Table {
     void remove(@NotNull ByteBuffer k);
 
     @NotNull
-    Iterator iterator(@NotNull ByteBuffer from);
+    Iterator<Cell> iterator(@NotNull ByteBuffer from);
 }
