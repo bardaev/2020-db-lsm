@@ -92,6 +92,8 @@ public class SSTable implements Table {
 
         fileSerialize.write(ByteBuffer.allocate(Integer.BYTES).putInt(count).rewind());
 
+        fileSerialize.close();
+
     }
 
     private int getPositionKey(final ByteBuffer key) {

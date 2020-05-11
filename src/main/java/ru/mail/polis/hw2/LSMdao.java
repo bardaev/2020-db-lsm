@@ -16,8 +16,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.NavigableMap;
 import java.util.List;
+import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
@@ -45,7 +45,7 @@ public class LSMdao implements DAO {
      * @param storage - storage
      * @param flushThreshold - flush when memTable is full
      */
-    public LSMdao (@NotNull final File storage, final long flushThreshold) throws IOException {
+    public LSMdao(@NotNull final File storage, final long flushThreshold) throws IOException {
         assert flushThreshold > 0L;
 
         this.storage = storage;
