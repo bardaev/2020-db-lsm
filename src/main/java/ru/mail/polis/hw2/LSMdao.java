@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
-public class LSMDAO implements DAO {
+public class LSMdao implements DAO {
 
-    private static final Logger log = LoggerFactory.getLogger(LSMDAO.class);
+    private static final Logger log = LoggerFactory.getLogger(LSMdao.class);
 
     private static final String SUFFIX = ".dat";
     private static final String TEMP = ".tmp";
@@ -40,9 +40,12 @@ public class LSMDAO implements DAO {
     private int generation;
 
     /**
-     * Create a LSM tree
+     * Implementation {@link Table}.
+     *
+     * @param storage - storage
+     * @param flushThreshold - flush when memTable is full
      */
-    public LSMDAO(@NotNull final File storage, final long flushThreshold) throws IOException {
+    public LSMdao (@NotNull final File storage, final long flushThreshold) throws IOException {
         assert flushThreshold > 0L;
 
         this.storage = storage;

@@ -1,7 +1,6 @@
 package ru.mail.polis.hw2;
 
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +56,9 @@ public class SSTable implements Table {
     }
 
     /**
-     * Write file
+     * serialize table to file
+     * @param file - file
+     * @param iterator - iterator
      */
     public static void serialize(final File file, final Iterator<Cell> iterator) throws IOException {
 
