@@ -56,7 +56,7 @@ public class SSTable implements Table {
     }
 
     /**
-     * serialize table to file
+     * serialize table to file.
      *
      * @param file - file
      * @param iterator - iterator
