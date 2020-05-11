@@ -11,11 +11,11 @@ import java.util.TreeMap;
 public class MemoryTable implements Table {
 
     private final SortedMap<ByteBuffer, Value> map = new TreeMap<>();
-    private long size = 0;
+    private long size;
 
     @NotNull
     @Override
-    public Iterator<Cell> iterator(@NotNull ByteBuffer from) {
+    public Iterator<Cell> iterator(@NotNull final ByteBuffer from) {
         return Iterators.transform(
                 map.tailMap(from).entrySet().iterator(),
                 entry -> new Cell(entry.getKey(), entry.getValue())
@@ -23,13 +23,13 @@ public class MemoryTable implements Table {
     }
 
     @Override
-    public void upsert(@NotNull ByteBuffer k, @NotNull ByteBuffer v) {
+    public void upsert(@NotNull final ByteBuffer k, @NotNull final ByteBuffer v) {
         map.put(k, new Value(System.currentTimeMillis(), v));
         size += k.remaining() + v.remaining() + Long.BYTES;
     }
 
     @Override
-    public void remove(@NotNull ByteBuffer k) {
+    public void remove(@NotNull final ByteBuffer k) {
         if (map.containsKey(k)) {
             if (!map.get(k).isTombstone()) {
                 size = size - map.get(k).getData().remaining();
@@ -47,6 +47,5 @@ public class MemoryTable implements Table {
     public long getSizeBytes() {
         return size;
     }
-
 
 }

@@ -4,12 +4,14 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -32,8 +34,8 @@ public class SSTable implements Table {
 
     @NotNull
     @Override
-    public Iterator<Cell> iterator(@NotNull ByteBuffer from) {
-        Iterator<Cell> iterator = new Iterator<>() {
+    public Iterator<Cell> iterator(@NotNull final ByteBuffer from) {
+        final Iterator<Cell> iterator = new Iterator<>() {
             int pos = getPositionKey(from);
 
             @Override
@@ -57,14 +59,14 @@ public class SSTable implements Table {
 
     public static void serialize(final File file, final Iterator<Cell> iterator) throws IOException {
 
-        List<Integer> offsets = new ArrayList<>();
+        final List<Integer> offsets = new ArrayList<>();
         int offset = 0;
 
-        FileChannel fileSerialize = new FileOutputStream(file).getChannel();
+        final FileChannel fileSerialize = new FileOutputStream(file).getChannel();
 
         while (iterator.hasNext()) {
-            Cell cell = iterator.next();
-            ByteBuffer k = cell.getKey();
+            final Cell cell = iterator.next();
+            final ByteBuffer k = cell.getKey();
             offsets.add(offset);
             offset = offset + k.remaining() + Long.BYTES + Integer.BYTES;
             fileSerialize.write(ByteBuffer.allocate(Integer.BYTES).putInt(k.remaining()).rewind());
@@ -80,8 +82,8 @@ public class SSTable implements Table {
             }
         }
 
-        int count = offsets.size();
-        for (Integer offs : offsets) {
+        final int count = offsets.size();
+        for (final Integer offs : offsets) {
             fileSerialize.write(ByteBuffer.allocate(Integer.BYTES).putInt(offs).rewind());
         }
 
@@ -89,7 +91,7 @@ public class SSTable implements Table {
 
     }
 
-    private int getPositionKey(ByteBuffer key) {
+    private int getPositionKey(final ByteBuffer key) {
         int low = 0;
         int high = count - 1;
         while (low <= high) {
@@ -168,12 +170,12 @@ public class SSTable implements Table {
     }
 
     @Override
-    public void upsert(@NotNull ByteBuffer k, @NotNull ByteBuffer v) {
+    public void upsert(@NotNull final ByteBuffer k, @NotNull final ByteBuffer v) {
         throw new UnsupportedOperationException("Immutable");
     }
 
     @Override
-    public void remove(@NotNull ByteBuffer k) {
+    public void remove(@NotNull final ByteBuffer k) {
         throw new UnsupportedOperationException("Immutable");
     }
 }

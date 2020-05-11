@@ -11,28 +11,28 @@ public class Value implements Comparable<Value> {
     private final long timestamp;
 
     @Nullable
-    private final Optional<ByteBuffer> value;
+    private final Optional<ByteBuffer> val;
 
     Value(final long timestamp, @Nullable final ByteBuffer value) {
         assert timestamp > 0L;
         this.timestamp = timestamp;
-        this.value = Optional.of(value);
+        this.val = Optional.of(value);
     }
 
     Value(final long timestamp) {
         assert timestamp > 0L;
         this.timestamp = timestamp;
-        this.value = Optional.empty();
+        this.val = Optional.empty();
     }
 
     boolean isTombstone() {
-        return value.isEmpty();
+        return val.isEmpty();
     }
 
     @NotNull
     ByteBuffer getData() {
         assert !isTombstone();
-        return value.orElseThrow().asReadOnlyBuffer();
+        return val.orElseThrow().asReadOnlyBuffer();
     }
 
     public long getTimestamp() {
@@ -40,7 +40,7 @@ public class Value implements Comparable<Value> {
     }
 
     @Override
-    public int compareTo(@NotNull Value o) {
+    public int compareTo(@NotNull final Value o) {
         return -Long.compare(timestamp, o.timestamp);
     }
 }

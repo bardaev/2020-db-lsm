@@ -2,7 +2,6 @@ package ru.mail.polis.hw2;
 
 import com.google.common.collect.Iterators;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.mail.polis.DAO;
@@ -15,8 +14,11 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class LSMDAO implements DAO {
@@ -25,7 +27,6 @@ public class LSMDAO implements DAO {
 
     private static final String SUFFIX = ".dat";
     private static final String TEMP = ".tmp";
-
 
     @NotNull
     private final File storage;
@@ -36,7 +37,7 @@ public class LSMDAO implements DAO {
     private final NavigableMap<Integer, SSTable> ssTableMap;
 
     // state
-    private int generation = 0;
+    private int generation;
 
     public LSMDAO(@NotNull final File storage, final long flushThreshold) throws IOException {
         assert flushThreshold > 0L;
@@ -47,7 +48,7 @@ public class LSMDAO implements DAO {
         this.memoryTable = new MemoryTable();
         this.ssTableMap = new TreeMap<>();
 
-        try(final Stream<Path> files = Files.list(storage.toPath())) {
+        try(Stream<Path> files = Files.list(storage.toPath())) {
             files
                     .filter(path -> path.toString().endsWith(SUFFIX))
                     .forEach(f -> {
@@ -68,7 +69,7 @@ public class LSMDAO implements DAO {
 
     @NotNull
     @Override
-    public Iterator<Record> iterator(@NotNull ByteBuffer from) throws IOException {
+    public Iterator<Record> iterator(@NotNull final ByteBuffer from) throws IOException {
         final List<Iterator<Cell>> iters = new ArrayList<>(ssTableMap.size() + 1);
         iters.add(memoryTable.iterator(from));
         ssTableMap.descendingMap().values().forEach(t -> iters.add(t.iterator(from)));
@@ -79,13 +80,13 @@ public class LSMDAO implements DAO {
     }
 
     @Override
-    public void upsert(@NotNull ByteBuffer key, @NotNull ByteBuffer value) throws IOException {
+    public void upsert(@NotNull final ByteBuffer key, @NotNull final ByteBuffer value) throws IOException {
         if (memoryTable.getSizeBytes() >= flushTheshold) flush();
         memoryTable.upsert(key, value);
     }
 
     @Override
-    public void remove(@NotNull ByteBuffer key) throws IOException {
+    public void remove(@NotNull final ByteBuffer key) throws IOException {
         if (memoryTable.getSizeBytes() >= flushTheshold) flush();
         memoryTable.remove(key);
     }
