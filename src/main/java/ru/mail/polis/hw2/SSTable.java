@@ -66,7 +66,7 @@ public class SSTable implements Table {
         final List<Integer> offsets = new ArrayList<>();
         int offset = 0;
 
-        try(FileChannel fileSerialize = new FileOutputStream(file).getChannel();) {
+        try(FileChannel fileSerialize = new FileOutputStream(file).getChannel()) {
             while (iterator.hasNext()) {
                 final Cell cell = iterator.next();
                 final ByteBuffer k = cell.getKey();
@@ -76,9 +76,11 @@ public class SSTable implements Table {
                 fileSerialize.write(k);
 
                 if (cell.getValue().isTombstone()) {
-                    fileSerialize.write(ByteBuffer.allocate(Long.BYTES).putLong(-cell.getValue().getTimestamp()).rewind());
+                    fileSerialize.write(ByteBuffer.allocate(Long.BYTES).
+                            putLong(-cell.getValue().getTimestamp()).rewind());
                 } else {
-                    fileSerialize.write(ByteBuffer.allocate(Long.BYTES).putLong(cell.getValue().getTimestamp()).rewind());
+                    fileSerialize.write(ByteBuffer.allocate(Long.BYTES)
+                            .putLong(cell.getValue().getTimestamp()).rewind());
                     final ByteBuffer data = cell.getValue().getData();
                     offset += data.remaining();
                     fileSerialize.write(data);
