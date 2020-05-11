@@ -17,8 +17,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.NavigableMap;
-import java.util.TreeMap;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 public class LSMDAO implements DAO {
@@ -39,6 +39,9 @@ public class LSMDAO implements DAO {
     // state
     private int generation;
 
+    /**
+     * Create a LSM tree
+     */
     public LSMDAO(@NotNull final File storage, final long flushThreshold) throws IOException {
         assert flushThreshold > 0L;
 
@@ -54,9 +57,9 @@ public class LSMDAO implements DAO {
                     .forEach(f -> {
                         try {
                             final String name = f.getFileName().toString();
-                            final int generation = Integer.parseInt(name.substring(0, name.indexOf(SUFFIX)));
-                            this.generation = Math.max(this.generation, generation);
-                            ssTableMap.put(generation, new SSTable(f.toFile()));
+                            final int gen = Integer.parseInt(name.substring(0, name.indexOf(SUFFIX)));
+                            this.generation = Math.max(this.generation, gen);
+                            ssTableMap.put(gen, new SSTable(f.toFile()));
                         } catch (IOException e) {
                             log.info("bad file");
                         } catch (NumberFormatException n) {

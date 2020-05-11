@@ -1,6 +1,7 @@
 package ru.mail.polis.hw2;
 
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,7 @@ public class SSTable implements Table {
     @NotNull
     @Override
     public Iterator<Cell> iterator(@NotNull final ByteBuffer from) {
-        final Iterator<Cell> iterator = new Iterator<>() {
+        return new Iterator<>() {
             int pos = getPositionKey(from);
 
             @Override
@@ -53,10 +54,11 @@ public class SSTable implements Table {
                 return getCell(pos++);
             }
         };
-
-        return iterator;
     }
 
+    /**
+     * Write file
+     */
     public static void serialize(final File file, final Iterator<Cell> iterator) throws IOException {
 
         final List<Integer> offsets = new ArrayList<>();
@@ -76,7 +78,7 @@ public class SSTable implements Table {
                 fileSerialize.write(ByteBuffer.allocate(Long.BYTES).putLong(-cell.getValue().getTimestamp()).rewind());
             } else {
                 fileSerialize.write(ByteBuffer.allocate(Long.BYTES).putLong(cell.getValue().getTimestamp()).rewind());
-                ByteBuffer data = cell.getValue().getData();
+                final ByteBuffer data = cell.getValue().getData();
                 offset += data.remaining();
                 fileSerialize.write(data);
             }
