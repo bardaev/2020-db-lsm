@@ -23,21 +23,21 @@ public class MemoryTable implements Table {
     }
 
     @Override
-    public void upsert(@NotNull final ByteBuffer k, @NotNull final ByteBuffer v) {
-        map.put(k, new Value(System.currentTimeMillis(), v));
-        size += k.remaining() + v.remaining() + Long.BYTES;
+    public void upsert(@NotNull final ByteBuffer key, @NotNull final ByteBuffer value) {
+        map.put(key, new Value(System.currentTimeMillis(), value));
+        size += key.remaining() + value.remaining() + Long.BYTES;
     }
 
     @Override
-    public void remove(@NotNull final ByteBuffer k) {
-        if (map.containsKey(k)) {
-            if (!map.get(k).isTombstone()) {
-                size = size - map.get(k).getData().remaining();
+    public void remove(@NotNull final ByteBuffer key) {
+        if (map.containsKey(key)) {
+            if (!map.get(key).isTombstone()) {
+                size = size - map.get(key).getData().remaining();
             }
         } else {
-            size += k.remaining() + Long.BYTES;
+            size += key.remaining() + Long.BYTES;
         }
-        map.put(k, new Value(System.currentTimeMillis()));
+        map.put(key, new Value(System.currentTimeMillis()));
     }
 
     public int getSize() {

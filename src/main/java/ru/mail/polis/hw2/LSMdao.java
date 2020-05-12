@@ -14,11 +14,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class LSMdao implements DAO {
@@ -114,5 +110,8 @@ public class LSMdao implements DAO {
     @Override
     public void close() throws IOException {
         if (memoryTable.getSize() > 0) flush();
+        for (Map.Entry<Integer, SSTable> el: ssTableMap.entrySet()) {
+            el.getValue().close();
+        }
     }
 }

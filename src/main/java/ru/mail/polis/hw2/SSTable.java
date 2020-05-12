@@ -174,13 +174,17 @@ public class SSTable implements Table {
         return offset.rewind().getInt();
     }
 
+    public void close() throws IOException {
+        fileChannel.close();
+    }
+
     @Override
-    public void upsert(@NotNull final ByteBuffer k, @NotNull final ByteBuffer v) {
+    public void upsert(@NotNull final ByteBuffer key, @NotNull final ByteBuffer value) {
         throw new UnsupportedOperationException("Immutable");
     }
 
     @Override
-    public void remove(@NotNull final ByteBuffer k) {
+    public void remove(@NotNull final ByteBuffer key) {
         throw new UnsupportedOperationException("Immutable");
     }
 }

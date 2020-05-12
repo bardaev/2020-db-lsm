@@ -7,9 +7,9 @@ import java.util.Iterator;
 
 public interface Table {
 
-    void upsert(@NotNull ByteBuffer k, @NotNull ByteBuffer v);
+    void upsert(@NotNull ByteBuffer key, @NotNull ByteBuffer value);
 
-    void remove(@NotNull ByteBuffer k);
+    void remove(@NotNull ByteBuffer key);
 
     @NotNull
     Iterator<Cell> iterator(@NotNull ByteBuffer from);
