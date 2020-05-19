@@ -17,8 +17,6 @@ import java.util.List;
 
 public class SSTable implements Table {
 
-    private static final Logger log = LoggerFactory.getLogger(SSTable.class);
-
     private final FileChannel fileChannel;
     private final int count;
     private final int size;
@@ -45,11 +43,7 @@ public class SSTable implements Table {
 
             @Override
             public Cell next() {
-                if (!hasNext()) try {
-                    throw new NoSuchFieldException();
-                } catch (NoSuchFieldException e) {
-                    log.info("NoSuchFieldException");
-                }
+                if (!hasNext()) throw new RuntimeException();
                 return getCell(pos++);
             }
         };

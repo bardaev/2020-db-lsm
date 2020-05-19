@@ -14,13 +14,10 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Stream;
+
+import static java.util.Objects.requireNonNull;
 
 public class LSMdao implements DAO {
 
@@ -35,7 +32,7 @@ public class LSMdao implements DAO {
 
     // data
     private MemoryTable memoryTable;
-    private final NavigableMap<Integer, SSTable> ssTableMap;
+    private NavigableMap<Integer, SSTable> ssTableMap;
 
     // state
     private int generation;
@@ -77,26 +74,41 @@ public class LSMdao implements DAO {
 
     @NotNull
     @Override
-    public Iterator<Record> iterator(@NotNull final ByteBuffer from) throws IOException {
-        final List<Iterator<Cell>> iters = new ArrayList<>(ssTableMap.size() + 1);
-        iters.add(memoryTable.iterator(from));
-        ssTableMap.descendingMap().values().forEach(t -> iters.add(t.iterator(from)));
-        final Iterator<Cell> merge = Iterators.mergeSorted(iters, Cell.COMPARATOR);
-        final Iterator<Cell> fresh = Iters.collapseEquals(merge, Cell::getKey);
-        final Iterator<Cell> alive = Iterators.filter(fresh, e -> !e.getValue().isTombstone());
-        return Iterators.transform(alive, e -> Record.of(e.getKey(), e.getValue().getData()));
+    public Iterator<Record> iterator(@NotNull final ByteBuffer from) {
+        final Iterator<Cell> alive = Iterators.filter(cellIterator(from),
+                cell -> !requireNonNull(cell).getValue().isTombstone());
+        return Iterators.transform(alive, cell -> Record.of(requireNonNull(cell).getKey(), cell.getValue().getData()));
+    }
+
+    private Iterator<Cell> cellIterator(@NotNull final ByteBuffer from) {
+        final List<Iterator<Cell>> iterators = new ArrayList<>(ssTableMap.size() + 1);
+        iterators.add(memoryTable.iterator(from));
+        ssTableMap.descendingMap().values().forEach(table -> iterators.add(table.iterator(from)));
+        final Iterator<Cell> merged = Iterators.mergeSorted(iterators, Cell.COMPARATOR);
+        return Iters.collapseEquals(merged, Cell::getKey);
     }
 
     @Override
-    public void upsert(@NotNull final ByteBuffer key, @NotNull final ByteBuffer value) throws IOException {
-        if (memoryTable.getSizeBytes() >= flushTheshold) flush();
-        memoryTable.upsert(key, value);
-    }
+    public void compact() throws IOException {
+        final Iterator<Cell> iterator = cellIterator(ByteBuffer.allocate(0));
+        final File tmp = new File(storage, generation + TEMP);
+        SSTable.serialize(tmp, iterator);
+        for (int i = 0; i < generation; i++) {
+            try {
+                Files.delete(new File(storage, i + SUFFIX).toPath());
+            } catch (IOException e) {
+                log.warn("Can not delete file");
+            }
 
-    @Override
-    public void remove(@NotNull final ByteBuffer key) throws IOException {
-        if (memoryTable.getSizeBytes() >= flushTheshold) flush();
-        memoryTable.remove(key);
+        }
+        generation = 0;
+        final File file = new File(storage, generation + SUFFIX);
+        Files.move(tmp.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE);
+        ssTableMap = new TreeMap<>();
+
+        memoryTable = new MemoryTable();
+        ssTableMap.put(generation, new SSTable(file));
+        generation++;
     }
 
     private void flush() throws IOException {
@@ -110,6 +122,18 @@ public class LSMdao implements DAO {
         memoryTable = new MemoryTable();
         ssTableMap.put(generation, new SSTable(dst));
         generation++;
+    }
+
+    @Override
+    public void upsert(@NotNull final ByteBuffer key, @NotNull final ByteBuffer value) throws IOException {
+        if (memoryTable.getSizeBytes() >= flushTheshold) flush();
+        memoryTable.upsert(key, value);
+    }
+
+    @Override
+    public void remove(@NotNull final ByteBuffer key) throws IOException {
+        if (memoryTable.getSizeBytes() >= flushTheshold) flush();
+        memoryTable.remove(key);
     }
 
     @Override
