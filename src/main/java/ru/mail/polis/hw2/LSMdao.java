@@ -68,8 +68,9 @@ public class LSMdao implements DAO {
                             ssTableMap.put(gen, new SSTable(f.toFile()));
                         } catch (IOException e) {
                             log.info("bad file");
+                            log.error("bad file", e);
                         } catch (NumberFormatException n) {
-                            log.info("bad name");
+                            log.error("bad name", n);
                         }
                     });
         }
@@ -131,14 +132,14 @@ public class LSMdao implements DAO {
 
     @Override
     public void upsert(@NotNull final ByteBuffer key, @NotNull final ByteBuffer value) throws IOException {
-        if (memoryTable.getSizeBytes() >= flushTheshold) flush();
         memoryTable.upsert(key, value);
+        if (memoryTable.getSizeBytes() >= flushTheshold) flush();
     }
 
     @Override
     public void remove(@NotNull final ByteBuffer key) throws IOException {
-        if (memoryTable.getSizeBytes() >= flushTheshold) flush();
         memoryTable.remove(key);
+        if (memoryTable.getSizeBytes() >= flushTheshold) flush();
     }
 
     @Override
